@@ -1,0 +1,142 @@
+% Beamer presentation for SIR Project
+\documentclass{beamer}
+
+% Theme
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{babel}
+
+\title[Modelo SIR y MCMC]{Modelo SIR como Cadena de Markov aplicado al dengue en Cali 2024}
+\author{Elián Steven Bejarano González
+\\ Cadenas de Markov y Aplicaciones}
+\institute{Universidad Nacional de Colombia}
+\date{2025}
+
+\begin{document}
+
+% Slide 1 --------------------------------------------------------------------
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% Slide 2 --------------------------------------------------------------------
+\begin{frame}{Motivación: Dengue en Cali 2024}
+  \begin{itemize}
+    \item Incremento histórico de casos confirmados.
+    \item Datos obtenidos de microdatos SIVIGILA.
+    \item Caso ideal para estudiar modelos epidémicos estocásticos.
+  \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{fig_incidencia_cali.png}
+  \end{center}
+\end{frame}
+
+% Slide 3 --------------------------------------------------------------------
+\begin{frame}{Modelo SIR: Estructura general}
+  \begin{columns}
+    \column{0.55\textwidth}
+      \begin{itemize}
+        \item Estado del sistema:
+        \[
+          X_t = (S_t, I_t, R_t)
+        \]
+        \item Propiedad de Markov.
+        \item Transiciones:
+        \[
+          \Delta I_t \sim \text{Binomial}(S_t, \beta I_t)
+        \]
+        \[
+          \Delta R_t \sim \text{Binomial}(I_t, \gamma)
+        \]
+      \end{itemize}
+    \column{0.45\textwidth}
+      \begin{center}
+      \includegraphics[width=0.9\textwidth]{fig_flechas_sir.png}
+      \end{center}
+  \end{columns}
+\end{frame}
+
+% Slide 4 --------------------------------------------------------------------
+\begin{frame}{Implementación Bayesiana con JAGS}
+  \begin{itemize}
+    \item Ajuste completo mediante MCMC.
+    \item 4 cadenas independientes.
+    \item 80,000 iteraciones de adaptación.
+    \item Posteriores para $S_0$, $\beta$, $\tau_C$.
+  \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{fig_modelo_jags.png}
+  \end{center}
+\end{frame}
+
+% Slide 5 --------------------------------------------------------------------
+\begin{frame}{Diagnóstico MCMC}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{fig_traceplots_parametros.png}
+  \end{center}
+  \begin{itemize}
+    \item Trazas no unimodales.
+    \item Saltos entre modos en $S_0$ y $\beta$.
+    \item Evidencia de multimodalidad: el modelo SIR null es insuficiente.
+  \end{itemize}
+\end{frame}
+
+% Slide 6 --------------------------------------------------------------------
+\begin{frame}{Resultados: Observados vs Modelo}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{fig_casos_vs_modelo.png}
+  \end{center}
+  \begin{itemize}
+    \item El modelo reproduce la forma general del brote.
+    \item La magnitud predicha es irreal: sobreestima enormemente.
+  \end{itemize}
+\end{frame}
+
+% Slide 7 --------------------------------------------------------------------
+\begin{frame}{Trayectorias S(t) y R(t)}
+  \begin{columns}
+    \column{0.5\textwidth}
+      \includegraphics[width=0.95\textwidth]{fig_susceptibles.png}
+    \column{0.5\textwidth}
+      \includegraphics[width=0.95\textwidth]{fig_recuperados.png}
+  \end{columns}
+  \begin{itemize}
+    \item Caída brusca en susceptibles.
+    \item Inmunidad casi total → irreal en contexto urbano real.
+  \end{itemize}
+\end{frame}
+
+% Slide 8 --------------------------------------------------------------------
+\begin{frame}{Discusión}
+  \begin{itemize}
+    \item El modelo SIR null no captura estacionalidad.
+    \item La multimodalidad posterior indica incompatibilidad estructural.
+    \item Motiva modelos con $\beta(t)$ o clima.
+  \end{itemize}
+\end{frame}
+
+% Slide 9 --------------------------------------------------------------------
+\begin{frame}{Conclusiones}
+  \begin{itemize}
+    \item El SIR null es útil pedagógicamente, pero no para dengue real.
+    \item MCMC revela claramente las limitaciones estructurales.
+    \item Extensiones: clima, modelos vectoriales, $\beta(t)$.
+  \end{itemize}
+\end{frame}
+
+% Slide 10 --------------------------------------------------------------------
+\begin{frame}{Gracias}
+  \begin{center}
+    \Large Gracias por su atención.
+    \\[0.5cm]
+    \small Código completo en GitHub https://github.com/elbejaranog-runner/Modelado-estoc-stico-del-dengue-en-Cali-mediante-un-modelo-SIR-y-Cadenas-de-Markov).
+  \end{center}
+\end{frame}
+
+\end{document}
