@@ -1,0 +1,71 @@
+model {
+
+    ####################################################################
+    # 1. PRIORS
+    ####################################################################
+
+    # Fracción susceptible inicial en Cali al inicio de 2024
+    S0 ~ dunif(0, 1)
+
+    # Nivel de ruido en casos observados
+    tauC ~ dunif(0, 1)
+
+    # Tasa de transmisión beta (prior normal informado)
+    beta ~ dnorm(beta_mu, beta_prec)   # beta_prec = 1 / sd_beta^2
+
+
+####################################################################
+# 2. CONDICIONES INICIALES
+####################################################################
+
+# S0 es fracción, pero S[1] debe ser entero
+S[1] <- round(S0 * N0)
+
+# I0 debería venir ya entero, pero redondeamos
+I[1] <- round(I0)
+
+# R también entero
+R[1] <- N0 - S[1] - I[1]
+
+
+    ####################################################################
+    # 3. MODELO DE PROCESO: DINÁMICA SIR ESTOCÁSTICA
+    ####################################################################
+
+    for (t in 1:(T-1)) {
+
+        # Probabilidad de infección en la semana t
+        p_inf[t] <- 1 - exp(-beta * I[t] / N)
+
+        # Nuevas infecciones ~ Binomial(S[t], p_inf[t])
+        new_inf[t] ~ dbin(p_inf[t], S[t])
+
+        # Probabilidad de recuperación (gamma es dato)
+        p_rec[t] <- 1 - exp(-gamma)
+
+        # Nuevas recuperaciones ~ Binomial(I[t], p_rec[t])
+        new_rec[t] ~ dbin(p_rec[t], I[t])
+
+        # Actualización de compartimentos
+        S[t+1] <- S[t] - new_inf[t]
+        I[t+1] <- I[t] + new_inf[t] - new_rec[t]
+        R[t+1] <- R[t] + new_rec[t]
+    }
+
+
+    ####################################################################
+    # 4. MODELO DE OBSERVACIÓN: CASOS CONFIRMADOS POR SEMANA EN CALI
+    #
+    # C[t] | I[t] ~ Normal( rho * I[t], (rho * I[t] * tauC)^2 )
+    ####################################################################
+
+    for (t in 1:T) {
+
+        mu[t] <- rho * I[t]            # media esperada de casos confirmados
+        sigma[t] <- mu[t] * tauC + 0.0001   # desviación estándar (>0)
+        tau_obs[t] <- 1 / (sigma[t] * sigma[t])
+
+        C[t] ~ dnorm(mu[t], tau_obs[t])
+    }
+
+}
